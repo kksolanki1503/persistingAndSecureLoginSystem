@@ -90,9 +90,9 @@ exports.signin = async (req, res) => {
     res.cookie("databaseToken", token, {
       httpOnly: true,
       secure: true,
-      expires: new Date(Date.now() + 1 * 60 * 60 * 1000),
+      // expires: new Date(Date.now() + 1 * 60 * 60 * 1000),
       sameSite: "none",
-      maxAge: 30 * 86400000,
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
     return res.status(200).json({
@@ -113,7 +113,7 @@ exports.authentication = async (req, res, next) => {
     if (!decoded) {
       return res.status(400).json({ code: 400, message: "not Authorized !" });
     }
-    console.log(decoded.data, "decoded");
+    // console.log(decoded.data, "decoded");
     res.userData = decoded.data;
     next();
   } catch (error) {
@@ -127,8 +127,8 @@ exports.getUserInfo = async (req, res) => {
   try {
     const data = res.userData;
 
-    console.log(data, "req data");
-    return res.status(200).json({ data });
+    // console.log(data, "req data");
+    return res.status(200).json({ code: 200, data: data });
   } catch (error) {
     return res
       .status(500)
