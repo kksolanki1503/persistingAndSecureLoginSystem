@@ -5,10 +5,13 @@ const authController = require("../../controllers/auth/authController");
 
 router.post("/signup", authController.signup);
 router.post("/signin", authController.signin);
+router.get("/getuserinfo", authController.getUserInfo);
 router.get(
-  "/getuserinfo",
-  authController.authentication,
-  authController.getUserInfo
+  "/getallusers",
+  authController.authenticate,
+  authController.getAllUsers
 );
+router.post("/refresh", authController.RefreshToken);
+router.get("/logout", authController.logout);
 
 module.exports = router;

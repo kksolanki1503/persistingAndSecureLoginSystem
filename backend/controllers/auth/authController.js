@@ -54,19 +54,21 @@ exports.signup = async (req, res) => {
 
 exports.signin = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, visitorId } = req.body;
 
-    if (!email || !password) {
+    if (!email || !password || !visitorId) {
       return res
         .status(400)
         .json({ code: 400, message: "All fields required" });
     }
 
-    let user = await query("select * from user where email = ?", [email]);
+    let user = await query("select * from user where email = ? && active = 1", [
+      email,
+    ]);
     if (!user.length) {
       return res
-        .status(401)
-        .json({ code: 401, message: "User Is not registered with this email" });
+        .status(400)
+        .json({ code: 400, message: "User Is not registered with this email" });
     }
 
     user = user[0];
@@ -75,47 +77,50 @@ exports.signin = async (req, res) => {
     // console.log(isPasswordMatch, "password");
     if (!isPasswordMatch) {
       return res
-        .status(401)
-        .json({ code: 401, message: "Password is not correct" });
+        .status(400)
+        .json({ code: 400, message: "Password is not correct" });
     }
     const userData = { name: user.name, email: user.email };
-    let token = jwt.sign(
+
+    const refreshToken = jwt.sign(
       {
-        data: userData,
+        name: user.name,
+        email: email,
+        password: password,
+        roles: user?.roles?.split(",").map(Number),
+        visitorId: visitorId,
       },
-      process.env.SECRET_KEY,
-      { expiresIn: "1h" }
+      process.env.SECRET_KEY_REFRESS,
+      {
+        expiresIn: "1h",
+      }
     );
+    const accessToken = jwt.sign(userData, process.env.SECRET_KEY_ACCESS, {
+      expiresIn: "15m",
+    });
+
+    // let token = jwt.sign(
+    //   {
+    //     data: userData,
+    //   },
+    //   process.env.SECRET_KEY,
+    //   { expiresIn: "1h" }
+    // );
     // console.log(req.cookie, "cookies");
-    res.cookie("databaseToken", token, {
+    res.cookie("RefressToken", refreshToken, {
       httpOnly: true,
       secure: true,
       // expires: new Date(Date.now() + 1 * 60 * 60 * 1000),
       sameSite: "none",
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 1 * 60 * 60 * 1000,
     });
 
     return res.status(200).json({
       code: 200,
       message: "login Successfull",
+      accessToken: accessToken,
+      roles: user?.roles?.split(",").map(Number),
     });
-  } catch (error) {
-    return res
-      .status(500)
-      .json({ code: 500, message: "server Error", error: error.message });
-  }
-};
-
-exports.authentication = async (req, res, next) => {
-  try {
-    const databaseToken = req?.cookies?.databaseToken;
-    const decoded = jwt.verify(databaseToken, process.env.SECRET_KEY);
-    if (!decoded) {
-      return res.status(400).json({ code: 400, message: "not Authorized !" });
-    }
-    // console.log(decoded.data, "decoded");
-    res.userData = decoded.data;
-    next();
   } catch (error) {
     return res
       .status(500)
@@ -134,4 +139,79 @@ exports.getUserInfo = async (req, res) => {
       .status(500)
       .json({ code: 500, message: "server Error", error: error.message });
   }
+};
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const result = await query("select * from user");
+    // console.log(result);
+    if (!result.length) {
+      return res.status(400).json({ code: 404, message: "No user found" });
+    }
+    return res.status(200).json({ code: 200, data: result });
+  } catch (error) {
+    return res.status(500).json({ code: 500, message: "server error" });
+  }
+};
+
+exports.authenticate = async (req, res, next) => {
+  try {
+    const accessToken = req.header("Authorization");
+
+    const decoded = jwt.verify(
+      accessToken.split(" ")[1],
+      process.env.SECRET_KEY_ACCESS
+    );
+    // console.log(decoded, "decoded");
+    if (!decoded) {
+      return res.status(401).json({ code: 401, message: "Unauthorized" });
+    }
+    req.userData = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({ code: 401, message: "Unauthorized" });
+  }
+};
+
+exports.RefreshToken = async (req, res) => {
+  const { visitorId } = req.body;
+  try {
+    const refreshToken = req?.cookies?.RefressToken;
+    // console.log(refreshToken, "refreshToken comming");
+    const decoded = jwt.verify(refreshToken, process.env.SECRET_KEY_REFRESS);
+    // console.log(decoded, "refreshtoken ");
+    console.log(decoded.visitorId, "decoded Visitor Id");
+    console.log(visitorId, "device Visitor Id");
+    if (decoded.visitorId !== visitorId) {
+      return res.status(401).json({ message: "Device Not Recognized" });
+    }
+
+    const accessToken = jwt.sign(
+      { email: decoded.name, name: decoded.name },
+      process.env.SECRET_KEY_ACCESS,
+      {
+        expiresIn: "10s",
+      }
+    );
+    // console.log(accessToken, "accessToken");
+    return res.status(200).json({ accessToken, roles: decoded.roles });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ code: 500, message: "server Error", error: error.message });
+  }
+};
+
+exports.logout = async (req, res) => {
+  const cookies = req.cookies;
+  // console.log(cookies, "cookies");
+  if (!cookies?.RefressToken) return res.sendStatus(204);
+  const refreshToken = cookies.RefressToken;
+
+  res.clearCookie("RefressToken", {
+    httpOnly: true,
+    sameSite: "None",
+    secure: true,
+  });
+  res.sendStatus(204);
 };
