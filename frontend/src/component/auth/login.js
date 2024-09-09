@@ -4,7 +4,7 @@ import CustomButton from "../commonComponent/form/button/button";
 import { useState, useEffect, useRef } from "react";
 
 import { useNavigate, useLocation } from "react-router-dom";
-import FingerprintJS from "@fingerprintjs/fingerprintjs";
+// import FingerprintJS from "@fingerprintjs/fingerprintjs";
 // import AuthContext from "../../context/authProvider";
 // import axios from "axios";
 import { toast } from "react-toastify";
@@ -22,21 +22,21 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const from = location?.state?.from?.pathname || "/";
-  const fpPromise = FingerprintJS.load();
+  // const fpPromise = FingerprintJS.load();
   // const visitorId = null;
 
-  useEffect(() => {
-    fpPromise
-      .then((fp) => fp.get())
-      .then((result) => {
-        // This is the visitor identifier:
-        const visitorId = result.visitorId;
-        console.log(visitorId);
-        setSignInData({ ...signInData, visitorId });
-        // You can also inspect other details:
-        // console.log(result.components);
-      });
-  }, []);
+  // useEffect(() => {
+  //   fpPromise
+  //     .then((fp) => fp.get())
+  //     .then((result) => {
+  //       // This is the visitor identifier:
+  //       const visitorId = result.visitorId;
+  //       console.log(visitorId);
+  //       setSignInData({ ...signInData, visitorId });
+  //       // You can also inspect other details:
+  //       // console.log(result.components);
+  //     });
+  // }, []);
   // console.log(signInData, "signindata");
   // console.log(location?.state?.from?.pathname, "location");
   const focusRef = useRef();

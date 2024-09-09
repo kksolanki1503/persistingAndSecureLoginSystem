@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "../api/axios/axios";
 import useAuth from "./useAuth";
-import FingerprintJS from "@fingerprintjs/fingerprintjs";
+// import FingerprintJS from "@fingerprintjs/fingerprintjs";
 
 const useRefreshToken = () => {
   const { setAuth } = useAuth();
@@ -11,17 +11,17 @@ const useRefreshToken = () => {
 
   const refresh = async () => {
     try {
-      const fpPromise = await FingerprintJS.load();
-      const result = await fpPromise.get();
-      const visitorId = result.visitorId;
+      // const fpPromise = await FingerprintJS.load();
+      // const result = await fpPromise.get();
+      // const visitorId = result.visitorId;
       // console.log(result.components,"component")
 
-      const response = await axios.post(
+      const response = await axios.get(
         "/api/auth/refresh",
-        { visitorId: visitorId },
+        // { visitorId: visitorId },
         {
           withCredentials: true,
-          headers: { "Content-Type": "application/json" },
+          // headers: { "Content-Type": "application/json" },
         }
       );
       // console.log(response, "refreshToken Response");

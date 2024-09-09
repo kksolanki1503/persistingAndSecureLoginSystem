@@ -54,9 +54,9 @@ exports.signup = async (req, res) => {
 
 exports.signin = async (req, res) => {
   try {
-    const { email, password, visitorId } = req.body;
+    const { email, password } = req.body;
 
-    if (!email || !password || !visitorId) {
+    if (!email || !password) {
       return res
         .status(400)
         .json({ code: 400, message: "All fields required" });
@@ -88,7 +88,6 @@ exports.signin = async (req, res) => {
         email: email,
         password: password,
         roles: user?.roles?.split(",").map(Number),
-        visitorId: visitorId,
       },
       process.env.SECRET_KEY_REFRESS,
       {
@@ -96,7 +95,7 @@ exports.signin = async (req, res) => {
       }
     );
     const accessToken = jwt.sign(userData, process.env.SECRET_KEY_ACCESS, {
-      expiresIn: "15m",
+      expiresIn: "10s",
     });
 
     // let token = jwt.sign(
@@ -128,7 +127,7 @@ exports.signin = async (req, res) => {
   }
 };
 
-exports.getUserInfo = async (req, res) => {
+exports.getUseInfo = async (req, res) => {
   try {
     const data = res.userData;
 
@@ -174,7 +173,7 @@ exports.authenticate = async (req, res, next) => {
 };
 
 exports.RefreshToken = async (req, res) => {
-  const { visitorId } = req.body;
+  // const { visitorId } = req.body;
   try {
     const refreshToken = req?.cookies?.RefressToken;
     // console.log(refreshToken, "refreshToken comming");
@@ -182,9 +181,9 @@ exports.RefreshToken = async (req, res) => {
     // console.log(decoded, "refreshtoken ");
     // console.log(decoded.visitorId, "decoded Visitor Id");
     // console.log(visitorId, "device Visitor Id");
-    if (decoded.visitorId !== visitorId) {
-      return res.status(401).json({ message: "Device Not Recognized" });
-    }
+    // if (decoded.visitorId !== visitorId) {
+    //   return res.status(401).json({ message: "Device Not Recognized" });
+    // }
 
     const accessToken = jwt.sign(
       { email: decoded.name, name: decoded.name },
