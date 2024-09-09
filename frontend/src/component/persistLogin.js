@@ -10,6 +10,7 @@ const PersistLogin = () => {
   useEffect(() => {
     const verifyRefreshToken = async () => {
       try {
+        // console.log("refresh Api is called");
         await refresh();
       } catch (error) {
         console.log(error);
@@ -17,7 +18,7 @@ const PersistLogin = () => {
         setLoading(false);
       }
     };
-
+    // console.log(auth?.accessToken, "auth?.accessToken");
     !auth?.accessToken ? verifyRefreshToken() : setLoading(false);
   }, []);
   return (

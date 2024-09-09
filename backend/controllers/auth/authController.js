@@ -180,8 +180,8 @@ exports.RefreshToken = async (req, res) => {
     // console.log(refreshToken, "refreshToken comming");
     const decoded = jwt.verify(refreshToken, process.env.SECRET_KEY_REFRESS);
     // console.log(decoded, "refreshtoken ");
-    console.log(decoded.visitorId, "decoded Visitor Id");
-    console.log(visitorId, "device Visitor Id");
+    // console.log(decoded.visitorId, "decoded Visitor Id");
+    // console.log(visitorId, "device Visitor Id");
     if (decoded.visitorId !== visitorId) {
       return res.status(401).json({ message: "Device Not Recognized" });
     }
